@@ -1,8 +1,13 @@
 package io.rezn.fmaze
 
-class Distribution(val clients: HashMap<String, Client>) {
+class Router() {
 
-    var followers = HashMap<UserId, HashSet<UserId>>()
+    val clients = HashMap<UserId, Client>()
+    val followers = HashMap<UserId, HashSet<UserId>>()
+
+    fun addClient(client: Client) {
+        clients.put(client.id, client);
+    }
 
     fun deliver(command: Command) : Unit {
         println("Delivering $command")
@@ -17,22 +22,18 @@ class Distribution(val clients: HashMap<String, Client>) {
 
     // all clients get a message
     private fun broadcast(command: Command.Broadcast) =
-            clients.values.forEach { it.write(command) }
+            clients.values.forEach { it.write(command.msg) }
 
     // all followers get a message
     private fun update(command: Command.StatusUpdate) =
-            followers.get(command.from)?.map(clients::get)?.forEach{ it?.write(command) }
+            followers.get(command.from)?.map(clients::get)?.forEach{ it?.write(command.msg) }
 
     private fun follow(command: Command.Follow) {
 
-        val set = followers.getOrPut(command.to, { HashSet<UserId>() })
+        followers.getOrPut(command.to, { HashSet<UserId>() }).add(command.from)
 
-        set.add(command.from)
-
-        println("User ${command.to} has ${set.size} followers")
-
-        // notify folowee
-        clients.get(command.to)?.write(command)
+        // notify followee
+        clients.get(command.to)?.write(command.msg)
     }
 
     // no notification needed
@@ -41,6 +42,10 @@ class Distribution(val clients: HashMap<String, Client>) {
 
     // just the 'to' gets a message
     private fun privateMessage(command: Command.PrivateMessage) =
-            clients.get(command.to)?.write(command)
+            clients.get(command.to)?.write(command.msg)
 
+    fun closeAllClients() {
+        clients.values.forEach{ it.close() }
+        clients.clear()
+    }
 }
