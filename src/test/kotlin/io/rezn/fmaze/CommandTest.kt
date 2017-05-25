@@ -43,7 +43,7 @@ class CommandTest {
     }
 
     @Test
-    fun commandRead( ) {
+    fun commandRead() {
         val input = ("777|B\r\n66|F|60|50\r\n").byteInputStream(Charsets.UTF_8)
 
         assertEquals(listOf(Command.Broadcast("777|B", 777), Command.Follow("66|F|60|50", 66, "60", "50")),

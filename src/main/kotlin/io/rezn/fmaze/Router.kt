@@ -9,7 +9,7 @@ class Router() {
         clients.put(client.id, client);
     }
 
-    fun deliver(command: Command) : Unit {
+    fun deliver(command: Command): Unit {
         println("Delivering $command")
         when (command) {
             is Command.Follow -> follow(command)
@@ -26,7 +26,7 @@ class Router() {
 
     // all followers get a message
     private fun update(command: Command.StatusUpdate) =
-            followers.get(command.from)?.map(clients::get)?.forEach{ it?.write(command.msg) }
+            followers.get(command.from)?.map(clients::get)?.forEach { it?.write(command.msg) }
 
     private fun follow(command: Command.Follow) {
 
@@ -45,7 +45,7 @@ class Router() {
             clients.get(command.to)?.write(command.msg)
 
     fun closeAllClients() {
-        clients.values.forEach{ it.close() }
+        clients.values.forEach { it.close() }
         clients.clear()
     }
 }

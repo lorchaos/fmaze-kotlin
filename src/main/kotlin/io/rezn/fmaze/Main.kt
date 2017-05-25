@@ -11,7 +11,6 @@ val INITIAL_EVENT_SEQ = 1
 
 fun main(args: Array<String>) {
 
-    val queue = MessageQueue(INITIAL_EVENT_SEQ)
     val router = Router()
 
     val clientJob = launch(CommonPool) {
@@ -26,7 +25,8 @@ fun main(args: Array<String>) {
             // single connection is received
             .take(1)
             .flatMap { Command.readAll(it.getInputStream()) }
-            .flatMap(queue::process) // it would be nice to have something like scan here
+            .scan(MessageQueue(INITIAL_EVENT_SEQ)) { c, q -> q.add(c) }
+            .flatMap { it.takeAllAvailable() }
             .forEach(router::deliver)
 
     // stop accepting new clients
@@ -34,10 +34,13 @@ fun main(args: Array<String>) {
 
     router.closeAllClients()
 
-    println("Done! Last event delivered: ${queue.lastSequence()} empty: ${queue.isEmpty()}")
+    println("Done! Last event delivered!")
 }
 
 // TODO find a way to close the server socket once the sequence is completed
 // generates a sequence of sockets from a server socket
-fun listen(port: Int) : Sequence<Socket> =
+fun listen(port: Int): Sequence<Socket> =
         ServerSocket(port).let { generateSequence { it.accept() } }
+
+
+fun <S, A> Sequence<A>.scan(s: S, f: (a: A, s: S) -> S) = this.map { f(it, s) }

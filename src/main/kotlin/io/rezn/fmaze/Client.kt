@@ -10,13 +10,13 @@ import java.net.Socket
 
 class Client(val id: UserId, val socket: Socket) : Closeable {
 
-    val out : OutputStreamWriter = socket.getOutputStream().writer(Charsets.UTF_8)
+    val out: OutputStreamWriter = socket.getOutputStream().writer(Charsets.UTF_8)
 
     init {
         println("Client created $id")
     }
 
-    fun write(msg: String) : Unit {
+    fun write(msg: String): Unit {
 
         //println("Client $id receiving $msg")
         out.let {

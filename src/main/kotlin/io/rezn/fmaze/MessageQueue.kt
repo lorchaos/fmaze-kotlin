@@ -8,23 +8,20 @@ import java.util.*
 class MessageQueue(var expected: Int) {
 
     // a priority queue with lower sequence number as head
-    val queue = PriorityQueue<Command>(Comparator<Command> {a, b -> a.seq - b.seq })
+    val queue = PriorityQueue<Command>(Comparator<Command> { a, b -> a.seq - b.seq })
 
-    /*  Adds a command to the queue and
-        deques events that match the expected sequence number
-        Note: this won't work if the event processing is multi-threaded, as the sequence is lazy
-    */
-    fun process(command: Command) : Sequence<Command> {
-
+    fun add(command: Command): MessageQueue {
         queue.add(command)
+        return this
+    }
 
-        return generateSequence {
-            if (queue.peek()?.seq == expected) {
-                expected++
-                queue.remove()
-            } else {
-                null
-            }
+    fun takeAllAvailable(): Sequence<Command> = generateSequence {
+
+        if (queue.peek()?.seq == expected) {
+            expected++
+            queue.remove()
+        } else {
+            null
         }
     }
 

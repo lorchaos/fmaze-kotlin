@@ -31,7 +31,8 @@ class MessageQueueTest {
     fun rightOrder() =
             assertEquals(1, addToQueue("one", 1).size)
 
-    private fun addToQueue(msg: String, seq: Int) =
-            queue.process(Command.Broadcast(msg, seq)).toList()
-
+    private fun addToQueue(msg: String, seq: Int): List<Command> {
+        queue.add(Command.Broadcast(msg, seq))
+        return queue.takeAllAvailable().toList()
+    }
 }
