@@ -1,9 +1,9 @@
 package io.rezn.fmaze
 
-import java.io.InputStream
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.launch
 import java.net.ServerSocket
 import java.net.Socket
-import java.util.concurrent.CompletableFuture
 
 val EVENT_SERVICE_PORT = 9090
 val CLIENT_SERVICE_PORT = 9099
@@ -14,26 +14,25 @@ fun main(args: Array<String>) {
     val queue = MessageQueue(INITIAL_EVENT_SEQ)
     val router = Router()
 
-    val clientFuture = CompletableFuture.runAsync {
-
+    val clientJob = launch(CommonPool) {
         // creates a client and add to the router
         listen(CLIENT_SERVICE_PORT)
-                .map(Client.Companion::create)
-                .forEach(router::addClient)
+                .map(Client.Companion::create).
+                forEach(router::addClient)
     }
 
     // add each event to the queue, and then routes the messages
     listen(EVENT_SERVICE_PORT)
-            .take(1) // single connection is received
-            .flatMap { Command.read(it.getInputStream()) }
-            .flatMap(queue::process)
+            // single connection is received
+            .take(1)
+            .flatMap { Command.readAll(it.getInputStream()) }
+            .flatMap(queue::process) // it would be nice to have something like scan here
             .forEach(router::deliver)
 
     // stop accepting new clients
-    clientFuture.cancel(true)
+    clientJob.cancel()
 
     router.closeAllClients()
-
 
     println("Done! Last event delivered: ${queue.lastSequence()} empty: ${queue.isEmpty()}")
 }

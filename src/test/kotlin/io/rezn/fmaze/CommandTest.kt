@@ -3,7 +3,6 @@ package io.rezn.fmaze
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.test.fail
 
 class CommandTest {
 
@@ -48,6 +47,6 @@ class CommandTest {
         val input = ("777|B\r\n66|F|60|50\r\n").byteInputStream(Charsets.UTF_8)
 
         assertEquals(listOf(Command.Broadcast("777|B", 777), Command.Follow("66|F|60|50", 66, "60", "50")),
-                Command.read(input).toList())
+                Command.readAll(input).toList())
     }
 }

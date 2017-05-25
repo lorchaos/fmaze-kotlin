@@ -48,7 +48,7 @@ sealed class Command(open val msg: String, open val seq: Int) {
         }
 
         // given an inputstream, generates a sequence of commands
-        fun read(input: InputStream) : Sequence<Command> = input.bufferedReader(Charsets.UTF_8).lines()
+        fun readAll(input: InputStream) : Sequence<Command> = input.bufferedReader(Charsets.UTF_8).lines()
                 .map(Command.Companion::parse)
                 .iterator()
                 .asSequence()
